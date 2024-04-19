@@ -45,7 +45,7 @@ pub const edges:[Edge;M]= [
     Edge(7-1,8-1,1f64),
 ];
 
-pub struct Service(f64,f64,f64);
+pub struct Service(f64,f64,usize,f64);
 impl Service{
     const fn process_cost(&self)->f64{
         self.0
@@ -53,19 +53,22 @@ impl Service{
     const fn merging_ratio(&self)->f64{
         self.1
     }
-    const fn scaling_factor(&self)->f64{
+    const fn db_ind(&self)->usize{
         self.2
+    }
+    const fn scaling_factor(&self)->f64{
+        self.3
     }
 }
 const service:[Service;8] = [
-    Service(0.2f64,1f64,1f64),
-    Service(0.2f64,1f64,2f64),
-    Service(0.5f64,2f64,1f64),
-    Service(0.5f64,3f64,0.5f64),
-    Service(0.1f64,1f64,1f64),
-    Service(0.1f64,1f64,3f64),
-    Service(1f64,5f64,0.5f64),
-    Service(1f64,10f64,1f64/3f64),
+    Service(0.2f64,1f64,1-1,1f64),
+    Service(0.2f64,1f64,2-1,2f64),
+    Service(0.5f64,2f64,3-1,1f64),
+    Service(0.5f64,3f64,4-1,0.5f64),
+    Service(0.1f64,1f64,5-1,1f64),
+    Service(0.1f64,1f64,6-1,3f64),
+    Service(1f64,5f64,7-1,0.5f64),
+    Service(1f64,10f64,8-1,1f64/3f64),
     ];
 
 

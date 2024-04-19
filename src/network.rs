@@ -34,7 +34,7 @@ impl <'a> Node<'a,'a,'a>{
     fn receive(&mut self, pac:Packet<'a>){
         #[cfg(feature = "check_variable")]
         assert!(pac.status().0==true);
-        let key = (pac.pac_id,pac.client.func[pac.stage()].service_id);
+        let key = (pac.pac_id,pac.stage());
         match self.unpaired_hash_map.remove(&key){
             None =>{
                 debug!(target : "net", "to be coupled {}\n",pac);
