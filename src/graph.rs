@@ -84,53 +84,20 @@ pub fn floyd
     (d,p,hop_cnt)
 }
 
-/**
- * # 功能
- * 根据由源节点、处理节点与目的节点组成的向量生成一组路径
- * 
- * # 输入
- * 一个表示任意两点间最短路的下一节点的二维数组。
- * 一个由源节点、处理节点与目的节点组成的向量
- * 
- * # 返回值
- * 一组路径，每个路径都是一个Vec
- * 
- * # Example1
- * ```
- * use di_dcnc_rs::graph::{Edge,EdgeType,create_graph,floyd,generate_paths};
- * use std::collections::VecDeque;
- * const edge_cnt:usize=4;
- * const node_cnt:usize=4;
- * let edge_array=[Edge(1,2,1f64),Edge(1,3,5f64),Edge(2,3,2f64),Edge(3,4,3f64),];
- * 
- * let bgw = create_graph::<node_cnt,edge_cnt>(&edge_array,EdgeType::BidirectionalWeighted);
- * let (_,p) = floyd(bgw);
- * let node_list=VecDeque::from([1,4,2]);
- * let paths=generate_paths(&p,node_list);
- * let ans=vec![vec![1,2,3,4],vec![4,3,2]];
- * assert_eq!(paths,ans);
- * 
- * ```
- */
-use std::collections::VecDeque;
 pub fn generate_paths<const N:usize>
-    (p :&[[usize;N];N],mut node: VecDeque<usize>)->Vec<Vec<usize>>{
-    let mut result:Vec<Vec<usize>>=Vec::with_capacity(node.len());
-    let mut s = node.pop_front().unwrap();
-    for t in node{
-        result.push(generate_single_path(p,s,t));
-        s=t;
-    }
-    result
+    (p :&[[usize;N];N],seed:usize,nodes: Vec<usize>)->Vec<Vec<usize>>{
+    nodes.into_iter().scan(seed, |prev,now|{
+        let s = *prev;
+        *prev = now;
+        Some(generate_single_path(p, s, now))
+    }).collect()
 }
 pub fn generate_single_path<const N:usize>
     (p :&[[usize;N];N],mut s:usize,t:usize)->Vec<usize>{
     let mut vec = Vec::with_capacity(N);
-    // print!("from {} to {} :",s.to_string(),t.to_string());
     loop{
         vec.push(s);
         if s==t {
-            // println!("{:?}",vec);
             return vec;
         }
         if vec.len()>N{

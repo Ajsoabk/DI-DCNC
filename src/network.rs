@@ -3,6 +3,7 @@ use std::collections::BinaryHeap;
 use std::collections::HashMap;
 
 use std::fmt;
+use std::iter::zip;
 use crate::const_val::*;
 use crate::{N,edges};
 use crate::analyzer::AnalyzeSystem;
@@ -297,7 +298,6 @@ pub struct Client{
     pub acc:[f64;3],
 }
 use crate::graph::{generate_paths,generate_single_path};
-use std::collections::VecDeque;
 impl  Client{
     /**
      * # 功能
@@ -305,17 +305,15 @@ impl  Client{
      * 
      */
     pub fn generate_live_and_static_paths<const N:usize>
-        (&self,p:&[[usize;N];N],nodes: Vec<usize>)
+        (&self,p:&[[usize;N];N],mut nodes: Vec<usize>)
         ->(Vec<Vec<usize>>,Vec<Vec<usize>>){
-        let mut static_paths:Vec<Vec<usize>>=Vec::with_capacity(self.func.len());
-        let mut node_iter=nodes.iter();
-        for serv in &self.func{
-            let process_node=node_iter.next().unwrap();
-            static_paths.push(generate_single_path(p,serv.database_id,*process_node));
-        }
-        let mut nodes=VecDeque::from(nodes);
-        nodes.push_front(self.s);
-        nodes.push_back(self.t);
-        (generate_paths(p,nodes),static_paths)
+        
+        nodes.push(self.t);
+        let static_paths:Vec<Vec<usize>> = zip(nodes.iter(),self.func.iter())
+            .map(|(node,serv)|{
+            generate_single_path(p,serv.database_id,*node)
+        }).collect();
+        assert_eq!(nodes.len(),static_paths.len()+1);
+        (generate_paths(p,self.s,nodes),static_paths)
     }
 }
