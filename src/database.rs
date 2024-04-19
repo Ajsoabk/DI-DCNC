@@ -1,7 +1,7 @@
 use crate::const_val::*;
 use derive_new::new;
 use std::iter::zip;
-#[derive(new)]
+#[derive(new,Default)]
 struct DB{
     db_pos:Vec<usize>,
     #[new(value="[N;N]")]
@@ -22,11 +22,21 @@ impl DB{
                 })
         });
     }
+
 }
+#[derive(Default)]
 pub struct Databases{
     dbs:[DB;M],
 }
 impl Databases{
+    pub fn new(arr:[Vec<usize>;M])->Self{
+
+        let mut res = Databases::default();
+        for i in 0..M{
+            res.dbs[i] = DB::new(arr[i].clone());
+        }
+        res
+    }
     pub fn preprocess_nearest(&mut self,cost:&[[f64;N];N]){
         self.dbs.iter_mut().for_each(|db|{
             db.preprocess_nearest(cost);
@@ -34,6 +44,9 @@ impl Databases{
     }
     pub fn get_db_pos(&self,db_ind:usize,node_pos:usize)->usize{
         self.dbs[db_ind].nearest_to[node_pos]
+    }
+    pub fn get_db_cost(&self,db_ind:usize,node_pos:usize)->f64{
+        self.dbs[db_ind].min_cost[node_pos]
     }
 }
 // #[test]

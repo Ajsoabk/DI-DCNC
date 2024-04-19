@@ -1,9 +1,11 @@
 
 use std::iter::zip;
 
+use crate::database::Databases;
 use crate::{N,edges};
 use crate::matrix::{sub11,sub20,div20,div11_each_gen,add11_each,add22_each};
 use crate::network::Client;
+use crate::corealgorithm::generate_live_and_static_paths;
 use crate::packet::Packet;
 use crate::const_val::*;
 use crate::analyzer::AnalyzeSystem;
@@ -35,8 +37,8 @@ impl VirtualSys{
         for path in pac.paths[1..].iter(){
             let acc = acc_iter.next().unwrap();
             let serv = serv_iter.next().unwrap();
-            node_load[path[0]]+=pac.load*acc*(serv.process_cost);
-            debug!(target :"vs","path:{:?} add {}",path,pac.load*acc*(serv.process_cost));
+            node_load[path[0]]+=pac.load*acc*(serv.process_cost());
+            debug!(target :"vs","path:{:?} add {}",path,pac.load*acc*(serv.process_cost()));
         }
         debug!(target: "vs", "after update node load: {:?}",node_load);
     }
@@ -76,17 +78,17 @@ impl VirtualSys{
     pub fn normal_qi(&self)->[f64;N]{
         div11_each_gen(&self.qi,&self.ci)
     }
-    pub fn routing_for<'a>(&mut self,c:&'a Client,cnt:f64,t:usize,p:&[[usize;N];N],_hop_cnt:[[usize;N];N],node:(usize,usize),pac_id:usize)
+    pub fn routing_for<'a>(&mut self,c:&'a Client,cnt:f64,t:usize,p:&[[usize;N];N],_hop_cnt:[[usize;N];N],node:(usize,usize),pac_id:usize,dbs:&Databases)
         ->(Packet<'a>,Vec<Packet<'a>>)
     {
-        let (l_path,s_paths) = c.generate_live_and_static_paths(p, vec![node.0,node.1]);
+        let (l_path,s_paths) = generate_live_and_static_paths(&c,p, vec![node.0,node.1],dbs);
         let s_pacs=zip(zip(s_paths.into_iter(),c.func.iter()),c.acc.iter())
             .scan(0,|status,((path,ser),acc)|{
                 assert!(path.len()!=0);
 
                 let mut pac = Packet::new(
                     pac_id,
-                    cnt*ser.merging_ratio*acc,
+                    cnt*ser.merging_ratio()*acc,
                     t,
                     c,
                     vec![path],

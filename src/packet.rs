@@ -127,7 +127,7 @@ impl Ord for PacketPair<'_>{
 }
 impl PacketPair<'_>{
     pub fn cost(&self)->f64{
-        self.0.load*self.0.client.func[self.0.stage].process_cost
+        self.0.load*self.0.client.func[self.0.stage].process_cost()
     }
 }
 

@@ -119,7 +119,7 @@ impl Network<'_,'_>{
 impl <'a> Network<'a,'a>{
     pub fn process(&mut self,ana:&mut AnalyzeSystem,node_id: usize,mut pac:Packet<'a>){
         assert!(pac.is_live());
-        pac.load *= pac.client.func[pac.stage()].scaling_factor;
+        pac.load *= pac.client.func[pac.stage()].scaling_factor();
         pac.add_stage();
         pac.pos=0;
         self.arrive_at(ana,node_id,pac);
@@ -276,14 +276,6 @@ impl fmt::Display for Client{
         self.func)
     }
 }
-#[derive(new,Debug)]
-pub struct Service{
-    pub service_id: usize,
-    pub process_cost: f64,
-    pub merging_ratio: f64,
-    pub database_id: usize,
-    pub scaling_factor: f64,
-}
 /**
  * # 功能
  * 集成一系列服务`Service`，服务链式执行。保存了数据包进入网络的源节点与目标节点。
@@ -296,24 +288,4 @@ pub struct Client{
     pub s: usize,
     pub t: usize,
     pub acc:[f64;3],
-}
-use crate::graph::{generate_paths,generate_single_path};
-impl  Client{
-    /**
-     * # 功能
-     * 根据floyd算法计算出的下一跳数组以及MIN-STAR算法处理出的一组处理节点来生成一组路径，包括一个live packet的路径和一组static packets的路径
-     * 
-     */
-    pub fn generate_live_and_static_paths<const N:usize>
-        (&self,p:&[[usize;N];N],mut nodes: Vec<usize>)
-        ->(Vec<Vec<usize>>,Vec<Vec<usize>>){
-        
-        nodes.push(self.t);
-        let static_paths:Vec<Vec<usize>> = zip(nodes.iter(),self.func.iter())
-            .map(|(node,serv)|{
-            generate_single_path(p,serv.database_id,*node)
-        }).collect();
-        assert_eq!(nodes.len(),static_paths.len()+1);
-        (generate_paths(p,self.s,nodes),static_paths)
-    }
 }

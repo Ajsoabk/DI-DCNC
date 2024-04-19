@@ -1,6 +1,7 @@
 use crate::corealgorithm::{select_nodes_based_on, RoutingAlgorithm};
 use crate::const_val::*;
-use crate::network::{Client,Service,Network};
+use crate::database::Databases;
+use crate::network::{Client,Network};
 use crate::graph::floyd;
 use crate::matrix::mul10_gen;
 use crate::analyzer::AnalyzeSystem;
@@ -34,32 +35,25 @@ fn simulate(lambda :f64, rout_alg:RoutingAlgorithm,delay_limit:f64,node_ratio:f6
     let mut net: Network = Network::new(mul10_gen(&CI,node_ratio),[[CIJ*link_ratio;N];N]);
     let poi=Poisson::new(lambda).unwrap();
 
-    let service0:Service = Service::new(0,0.2f64,1f64,1-1,1f64);
-    let service1:Service = Service::new(1,0.2f64,1f64,2-1,2f64);
-    let service2:Service = Service::new(2,0.5f64,2f64,3-1,1f64);
-    let service3:Service = Service::new(3,0.5f64,3f64,4-1,0.5f64);
-    let service4:Service = Service::new(4,0.1f64,1f64,5-1,1f64);
-    let service5:Service = Service::new(5,0.1f64,1f64,6-1,3f64);
-    let service6:Service = Service::new(6,1f64,5f64,7-1,0.5f64);
-    let service7:Service = Service::new(7,1f64,10f64,8-1,1f64/3f64);
     let c_list:[Client;4]=[
         Client::new(0,[service0,service1],i!('E'),i!('H'),[1f64,1f64,2f64]),
         Client::new(1,[service2,service3],i!('F'),i!('G'),[1f64,1f64,0.5f64]),
         Client::new(2,[service4,service5],i!('G'),i!('F'),[1f64,1f64,3f64]),
         Client::new(3,[service6,service7],i!('H'),i!('E'),[1f64,0.5f64,1f64/6f64]),
     ];
-
+    let mut dbs = Databases::new([vec![0],vec![1],vec![2],vec![3],vec![4],vec![5],vec![6],vec![7]]);
     let mut pac_id = 1..;
     let mut ana = AnalyzeSystem::default();
     loop{
         info!(target : "net","<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<tic toc!, at time slot {}>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",ana.t);
         let (d,p,hop_cnt)=floyd(vs.normal_qij());
+        dbs.preprocess_nearest(&d);
         for c in &c_list{
             let load = (poi.sample(&mut rand::thread_rng()) )as usize;
-            let nodes=select_nodes_based_on(rout_alg,vs.normal_qi(),d,&p,hop_cnt,c);
+            let nodes=select_nodes_based_on(rout_alg,vs.normal_qi(),d,&p,hop_cnt,c,&dbs);
             for i in 0..load{
                 let t = ana.t;
-                net.arrive(&mut ana,vs.routing_for(&c,1.0,t,&p,hop_cnt,nodes[i%nodes.len()],pac_id.next().unwrap()));
+                net.arrive(&mut ana,vs.routing_for(&c,1.0,t,&p,hop_cnt,nodes[i%nodes.len()],pac_id.next().unwrap(),&dbs));
             }
         }
         //滴答~
