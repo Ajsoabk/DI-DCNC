@@ -1,0 +1,65 @@
+appenders:
+  stdout:
+    kind: console
+    encoder:
+      pattern: "{h([{l}]-{t})}: {m}{n}"
+  virtual_system:
+    kind: file
+    path: "log/vs.log"
+    append: false
+    encoder:
+      pattern: "{h([{l}]-{t})}: {m}{n}"
+  
+  network:
+    kind: file
+    path: "log/net.log"
+    append: false
+    encoder:
+      pattern: "{h([{l}]-{t})}:{m}{n}"
+
+  analyse:
+    kind: file
+    path: "log/ana.log"
+    append: false
+    encoder:
+      pattern: "{h([{l}]-{t})}:{m}{n}"
+root:
+  level: info
+  appenders:
+    - stdout
+loggers:
+  vs:
+    level: info
+    appenders: 
+      - virtual_system
+    additive: false
+
+  net:
+    level: info
+    appenders:
+      - network
+    additive: false
+
+  ana:
+    level: info
+    appenders:
+      - analyse
+    additive: false
+# loggers:
+#   vs:
+#     level: debug
+#     appenders: 
+#       - virtual_system
+#     additive: false
+
+#   net:
+#     level: debug
+#     appenders:
+#       - network
+#     additive: false
+
+#   ana:
+#     level: debug
+#     appenders:
+#       - analyse
+#     additive: false
